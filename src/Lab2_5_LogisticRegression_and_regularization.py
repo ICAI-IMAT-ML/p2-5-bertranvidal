@@ -1,3 +1,4 @@
+import numpy as np
 class LogisticRegressor:
     def __init__(self):
         """
@@ -73,17 +74,20 @@ class LogisticRegressor:
         - self.bias: The bias of the model after training.
         """
         # TODO: Obtain m (number of examples) and n (number of features)
-        m = None
-        n = None
+        m = X.shape[0]
+        n = X.shape[1]
 
         # TODO: Initialize all parameters to 0
-        self.weights = None
-        self.bias = 0
+        self.weights = np.zeros(n)# n es el número de características en X
+        self.bias = 0  # El bias es un escalar
+
+        
 
         # TODO: Complete the gradient descent code
         # Tip: You can use the code you had in the previous practice
         # Execute the iterative gradient descent
-        for i in range(None):  # Fill the None here
+        for i in range(num_iterations):  # Fill the None here
+            
 
             # For these two next lines, you will need to implement the respective functions
             # Forward propagation
@@ -97,8 +101,10 @@ class LogisticRegressor:
 
             # TODO: Implement the gradient values
             # CAREFUL! You need to calculate the gradient of the loss function (*negative log-likelihood*)
-            dw = None  # Derivative w.r.t. the coefficients
-            db = None  # Derivative w.r.t. the intercept
+            error = y - y_hat
+            dw =(-1 / m) * np.dot(error,X)  # Derivative w.r.t. the coefficients
+            db = (-1 / m) * np.sum(error)  # Derivative w.r.t. the intercept
+            
 
             # Regularization:
             # Apply regularization if it is selected.
@@ -129,10 +135,11 @@ class LogisticRegressor:
         """
 
         # TODO: z is the value of the logits. Write it here (use self.weights and self.bias):
-        z = None
+        
+        z = np.dot(X, self.weights) + self.bias
 
         # Return the associated probabilities via the sigmoid trasnformation (symmetric choice)
-        return self.sigmoid(z)
+        return np.array(self.sigmoid(z))
 
     def predict(self, X, threshold=0.5):
         """
@@ -150,9 +157,11 @@ class LogisticRegressor:
 
         # TODO: Predict the class for each input data given the threshold in the argument
         probabilities = self.predict_proba(X)
-        classification_result = None
+        # Asignar clase según el umbral
+        
 
-        return classification_result
+        classification_result = [1 if prob >= threshold else 0 for prob in probabilities]
+        return np.array(classification_result)
 
     def lasso_regularization(self, dw, m, C):
         """
@@ -177,7 +186,7 @@ class LogisticRegressor:
 
         # TODO:
         # ADD THE LASSO CONTRIBUTION TO THE DERIVATIVE OF THE OBJECTIVE FUNCTION
-        lasso_gradient = None
+        lasso_gradient = (C / m) * np.sign(self.weights)
         return dw + lasso_gradient
 
     def ridge_regularization(self, dw, m, C):
@@ -203,7 +212,7 @@ class LogisticRegressor:
 
         # TODO:
         # ADD THE RIDGE CONTRIBUTION TO THE DERIVATIVE OF THE OBJECTIVE FUNCTION
-        ridge_gradient = None
+        ridge_gradient = (C/m) * self.weights
         return dw + ridge_gradient
 
     def elasticnet_regularization(self, dw, m, C, l1_ratio):
@@ -233,7 +242,13 @@ class LogisticRegressor:
         # TODO:
         # ADD THE RIDGE CONTRIBUTION TO THE DERIVATIVE OF THE OBJECTIVE FUNCTION
         # Be careful! You can reuse the previous results and combine them here, but beware how you do this!
-        elasticnet_gradient = None
+        l1_component = (C / m) * l1_ratio * np.sign(self.weights)
+
+        # Contribución de L2 (Ridge)
+        l2_component = (C / m) * (1 - l1_ratio) * self.weights
+
+        # Suma de ambas contribuciones
+        elasticnet_gradient = l1_component + l2_component
         return dw + elasticnet_gradient
 
     @staticmethod
@@ -264,7 +279,7 @@ class LogisticRegressor:
 
         # TODO: Implement the loss function (log-likelihood)
         m = y.shape[0]  # Number of examples
-        loss = None
+        loss = -(1/m) * np.sum(y * np.log(y_hat) + (1-y) * np.log(1-y_hat))
         return loss
 
     @staticmethod
@@ -283,6 +298,6 @@ class LogisticRegressor:
         """
 
         # TODO: Implement the sigmoid function to convert the logits into probabilities
-        sigmoid_value = None
+        sigmoid_value = 1/ (1 + np.exp(-z))
 
         return sigmoid_value
